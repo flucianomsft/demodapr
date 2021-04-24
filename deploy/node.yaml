@@ -1,0 +1,104 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: nodeapp-client
+  labels:
+    app: nodeapp-client
+spec:
+  selector:
+    app: nodeapp-client
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodeapp-client
+  labels:
+    app: nodeapp-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nodeapp-client
+  template:
+    metadata:
+      labels:
+        app: nodeapp-client
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "nodeapp-client"
+        dapr.io/app-port: "3000"
+        dapr.io/config: "appconfig"
+    spec:
+      containers:
+      - name: node
+        image: fluciano/nodedapr-demo:1.12
+        ports:
+        - containerPort: 3000
+        imagePullPolicy: Always
+        env:
+        - name: SERVER_APP
+          value: "nodeapp-server"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodeapp-server
+  labels:
+    app: nodeapp-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nodeapp-server
+  template:
+    metadata:
+      labels:
+        app: nodeapp-server
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "nodeapp-server"
+        dapr.io/app-port: "3000"
+        dapr.io/config: "appconfig"
+    spec:
+      containers:
+      - name: nodeapp-server
+        image: fluciano/nodedapr-demo:1.12
+        ports:
+        - containerPort: 3000
+        imagePullPolicy: Always
+        env:
+        - name: SERVER_APP
+          value: "nodeapp-other-server"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nodeapp-other-server
+  labels:
+    app: nodeapp-other-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nodeapp-other-server
+  template:
+    metadata:
+      labels:
+        app: nodeapp-other-server
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "nodeapp-other-server"
+        dapr.io/app-port: "3000"
+        dapr.io/config: "appconfig"
+    spec:
+      containers:
+      - name: nodeapp-other-server
+        image: fluciano/nodedapr-demo:1.12
+        ports:
+        - containerPort: 3000
+        imagePullPolicy: Always
